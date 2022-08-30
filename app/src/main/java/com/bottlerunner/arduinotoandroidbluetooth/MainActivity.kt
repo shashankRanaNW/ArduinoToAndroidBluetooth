@@ -1,6 +1,7 @@
 package com.bottlerunner.arduinotoandroidbluetooth
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Intent
@@ -17,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     var bluetoothAdapter: BluetoothAdapter? = null
     lateinit var binding: ActivityMainBinding
+    val SELECT_DEVICE = 0
 
         override fun onCreate(savedInstanceState: Bundle?) {
             super.onCreate(savedInstanceState)
@@ -47,13 +49,12 @@ class MainActivity : AppCompatActivity() {
             }
 
             binding.btnDiscover.setOnClickListener {
-                val intent = Intent(this, DeviceListActivity::class.java)
+                val intent = Intent(this, AvailableDevicesActivity::class.java)
                 startActivityForResult(intent, SELECT_DEVICE)
             }
-
-
     }
 
+    @SuppressLint("MissingPermission")
     val requestPermissionLauncher =
         registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -74,5 +75,14 @@ class MainActivity : AppCompatActivity() {
                 bluetoothAdapter?.enable()
             }
         }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == SELECT_DEVICE && resultCode == RESULT_OK) {
+            val name = data?.getStringExtra("devName")
+            val address = data!!.getStringExtra("devAddress")
+            Toast.makeText(this,name +"\n"+address,Toast.LENGTH_SHORT).show()
+        }
+        super.onActivityResult(requestCode, resultCode, data)
+    }
 
 }

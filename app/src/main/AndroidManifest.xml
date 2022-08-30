@@ -38,6 +38,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".AvailableDevicesActivity"
+            android:label="Discover Devices"
+            android:theme="@style/Theme.ArduinoToAndroidBluetooth.NoActionBar">
+
+        </activity>
+
     </application>
 
 </manifest>
