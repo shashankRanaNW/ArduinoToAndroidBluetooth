@@ -202,20 +202,16 @@ class MainActivity : AppCompatActivity() {
                             break
                         }
                         val byteArrayOutputStream = ByteArrayOutputStream()
-//                        Log.d(TAG,"numBytes: $numBytes")
-//                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
-                        Log.d(TAG,"buffer to string is ${numBytes?.let { it1 ->
-                            getFirst(buffer?.decodeToString().toString(),
-                                it1
-                            )
-                        }}")
-//                        val readMessage= String(buffer!!, 0, buffer!!.size)
-//                        Log.d(TAG,"readMessage string is $readMessage")
-//                        lifecycleScope.launch(Dispatchers.Main){
-//                            Toast.makeText(this@MainActivity,
-//                                numBytes?.let { it1 -> buffer?.decodeToString()?.get(it1) }.toString(),Toast.LENGTH_SHORT).show()
-//                        }
-                        buffer = ByteArray(1024)                                                //we have to clear byteArray
+                        Log.d(TAG,"numBytes: $numBytes")
+                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
+                        Log.d(TAG,"buffer to string is ${buffer?.decodeToString()}")
+                        val readMessage= String(buffer!!, 0, buffer!!.size)
+                        Log.d(TAG,"readMessage string is $readMessage")
+                        lifecycleScope.launch(Dispatchers.Main){
+                            Toast.makeText(this@MainActivity,
+                                numBytes?.let { it1 -> buffer?.decodeToString()?.get(it1) }.toString(),Toast.LENGTH_SHORT).show()
+                        }
+
                     }
                 }
             }
