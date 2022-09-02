@@ -33,6 +33,7 @@ fun getFirst(str: String, n: Int): String {
     return ans
 }
 
+
 @SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity() {
 
@@ -53,14 +54,16 @@ class MainActivity : AppCompatActivity() {
     val SELECT_DEVICE = 0
     val TAG ="Me hoo Gian, me hu bada takatvar"
 
+    var currStr=""
 
-        override fun onCreate(savedInstanceState: Bundle?) {
-            super.onCreate(savedInstanceState)
-            binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
 
-            //        permissions ki bheek
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
 
-            requestPermissionLauncher.launch(
+        //        permissions ki bheek
+
+        requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.ACCESS_FINE_LOCATION,
@@ -72,157 +75,118 @@ class MainActivity : AppCompatActivity() {
             )
         )
 
-            val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
-            bluetoothAdapter = bluetoothManager.adapter
-            if (bluetoothAdapter == null) {
-                Toast.makeText(
+        val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
+        bluetoothAdapter = bluetoothManager.adapter
+        if (bluetoothAdapter == null) {
+            Toast.makeText(
                 this,
                 "Abe bluetooth he nahi, chala bluetooth se chat karne",
                 Toast.LENGTH_SHORT
-                ).show()
-            }
+            ).show()
+        }
 
-            binding.btnDiscover.setOnClickListener {
-                val intent = Intent(this, AvailableDevicesActivity::class.java)
-                startActivityForResult(intent, SELECT_DEVICE)
-            }
+        binding.btnDiscover.setOnClickListener {
+            val intent = Intent(this, AvailableDevicesActivity::class.java)
+            startActivityForResult(intent, SELECT_DEVICE)
+        }
 
-            lifecycleScope.launch(Dispatchers.Main) {
-                while(true) {
-                    if (btDevice == null) {
-                        binding.clientButton.visibility = View.GONE
-                    }
-                    else {
-                        binding.clientButton.visibility = View.VISIBLE
-                        break
-                    }
-                    delay(500)
+        lifecycleScope.launch(Dispatchers.Main) {
+            while(true) {
+                if (btDevice == null) {
+                    binding.clientButton.visibility = View.GONE
                 }
-            }
-
-            binding.ServerBtn.setOnClickListener {
-                lifecycleScope.launch(Dispatchers.IO) {
-
-                    if(apnaServerSocket != null){
-                        apnaServerSocket!!.close()
-                    }
-                    apnaSocket?.close()
-
-                    apnaServerSocket =
-                        bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
-                            "BT_SERVICE",
-                            MY_UUID
-                        )
-                    var shouldLoop = true
-                    while (shouldLoop) {
-                        Log.d("Log", "Entered loop")
-                        apnaSocket = try {
-                            Log.d("Log", "inside the try")
-                            apnaServerSocket?.accept()
-                        } catch (e: IOException) {
-                            Log.e("Log", "Socket's accept() method failed", e)
-                            shouldLoop = false
-                            null
-                        }
-                        apnaSocket?.also {
-                            apnaServerSocket?.close()
-                            shouldLoop = false
-                        }
-                        Log.d(TAG, apnaSocket.toString())
-                    }
-
-                    Log.d("Log", "exited loop")
-                    withContext(Dispatchers.Main){
-                        Toast.makeText(
-                            this@MainActivity,
-                            "Connected to ${apnaSocket.toString()}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                    inStream =apnaSocket?.inputStream
-                    outStream=apnaSocket?.outputStream
-                    while (true) {
-                        // Read from the InputStream.
-                        var numBytes = try {
-                            inStream?.read(buffer)
-                        }
-                        catch (e: IOException) {
-                            Log.d(TAG, "Input stream was disconnected", e)
-                            break
-                        }
-                        val byteArrayOutputStream = ByteArrayOutputStream()
-                        Log.d(TAG,"numBytes: $numBytes")
-                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
-                        Log.d(TAG,"buffer to string is ${buffer?.decodeToString()}")
-                        val readMessage= String(buffer!!, 0, buffer!!.size)
-                        Log.d(TAG,"readMessage string is $readMessage")
-
-                    }
+                else {
+                    binding.clientButton.visibility = View.VISIBLE
+                    break
                 }
+                delay(500)
             }
+        }
 
-            binding.clientButton.setOnClickListener {
-                lifecycleScope.launch(Dispatchers.IO) {
-                    //code for client
-                    if(apnaServerSocket != null){
-                        apnaServerSocket!!.close()
-                    }
-                    apnaSocket?.close()
-                    bluetoothAdapter?.cancelDiscovery()
-                    btDevice?.let {
-                        apnaSocket = it.createInsecureRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"))
-                        apnaSocket?.connect()
-                        Log.d("Log", apnaSocket.toString())
-                    }
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@MainActivity,"Connected to ${apnaSocket?.remoteDevice?.name} \n ${apnaSocket.toString()}",Toast.LENGTH_SHORT).show()
-                    }
-                    inStream =apnaSocket?.inputStream
-                    outStream=apnaSocket?.outputStream
+        binding.ServerBtn.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
 
-                    try{
-//                        outStream?.write(messageByteArray)
-                        outStream?.write(1)
-                        if(outStream==null){
-                            Log.d(TAG,"outStream is null")
-                        }
+                if(apnaServerSocket != null){
+                    apnaServerSocket!!.close()
+                }
+                apnaSocket?.close()
+
+                apnaServerSocket =
+                    bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
+                        "BT_SERVICE",
+                        MY_UUID
+                    )
+                var shouldLoop = true
+                while (shouldLoop) {
+                    Log.d("Log", "Entered loop")
+                    apnaSocket = try {
+                        Log.d("Log", "inside the try")
+                        apnaServerSocket?.accept()
+                    } catch (e: IOException) {
+                        Log.e("Log", "Socket's accept() method failed", e)
+                        shouldLoop = false
+                        null
+                    }
+                    apnaSocket?.also {
+                        apnaServerSocket?.close()
+                        shouldLoop = false
+                    }
+                    Log.d(TAG, apnaSocket.toString())
+                }
+
+                Log.d("Log", "exited loop")
+                withContext(Dispatchers.Main){
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Connected to ${apnaSocket.toString()}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                inStream =apnaSocket?.inputStream
+                outStream=apnaSocket?.outputStream
+                while (true) {
+                    // Read from the InputStream.
+                    var numBytes = try {
+                        inStream?.read(buffer)
                     }
                     catch (e: IOException) {
-                        Log.e(TAG, "Error occurred when sending data", e)
+                        Log.d(TAG, "Input stream was disconnected", e)
+                        break
                     }
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+                    Log.d(TAG,"numBytes: $numBytes")
+                    Log.d(TAG,"buffer to string is ${buffer?.toString()}")
+                    Log.d(TAG,"buffer to string is ${buffer?.decodeToString()}")
+                    val readMessage= String(buffer!!, 0, buffer!!.size)
+                    Log.d(TAG,"readMessage string is $readMessage")
 
-                    while (true) {
-                        // Read from the InputStream.
-                        var numBytes = try {
-                            inStream?.read(buffer)
-                        }
-                        catch (e: IOException) {
-                            Log.d(TAG, "Input stream was disconnected", e)
-                            break
-                        }
-                        val byteArrayOutputStream = ByteArrayOutputStream()
-                        Log.d(TAG,"numBytes: $numBytes")
-                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
-                        Log.d(TAG,"buffer to string is ${buffer?.decodeToString()}")
-                        val readMessage= String(buffer!!, 0, buffer!!.size)
-                        Log.d(TAG,"readMessage string is $readMessage")
-                        lifecycleScope.launch(Dispatchers.Main){
-                            Toast.makeText(this@MainActivity,
-                                numBytes?.let { it1 -> buffer?.decodeToString()?.get(it1) }.toString(),Toast.LENGTH_SHORT).show()
-                        }
-
-                    }
                 }
             }
+        }
 
-            binding.btnSendData.setOnClickListener {
+        binding.clientButton.setOnClickListener {
+            lifecycleScope.launch(Dispatchers.IO) {
+                //code for client
+                if(apnaServerSocket != null){
+                    apnaServerSocket!!.close()
+                }
+                apnaSocket?.close()
+                bluetoothAdapter?.cancelDiscovery()
+                btDevice?.let {
+                    apnaSocket = it.createInsecureRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"))
+                    apnaSocket?.connect()
+                    Log.d("Log", apnaSocket.toString())
+                }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity,"Connected to ${apnaSocket?.remoteDevice?.name} \n ${apnaSocket.toString()}",Toast.LENGTH_SHORT).show()
+                }
                 inStream =apnaSocket?.inputStream
                 outStream=apnaSocket?.outputStream
 
                 try{
 //                        outStream?.write(messageByteArray)
-                    outStream?.write(0)
+                    outStream?.write(1)
                     if(outStream==null){
                         Log.d(TAG,"outStream is null")
                     }
@@ -230,7 +194,69 @@ class MainActivity : AppCompatActivity() {
                 catch (e: IOException) {
                     Log.e(TAG, "Error occurred when sending data", e)
                 }
+
+                while (true) {
+                    // Read from the InputStream.
+                    var numBytes = try {
+                        inStream?.read(buffer)
+                    }
+                    catch (e: IOException) {
+                        Log.d(TAG, "Input stream was disconnected", e)
+                        binding.clientButton.callOnClick()
+                        break
+                    }
+                    val byteArrayOutputStream = ByteArrayOutputStream()
+//                        Log.d(TAG,"numBytes: $numBytes")
+//                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
+                    Log.d(TAG,"buffer to string is ${numBytes?.let { it1 ->
+                        getFirst(buffer?.decodeToString().toString(),
+                            it1
+                        )
+                    }}")
+                    var bufferStr =""
+                    numBytes?.let { it1 ->
+                        bufferStr =getFirst(buffer?.decodeToString().toString(),
+                            it1
+                        )
+                    }
+//                    Log.d(TAG,bufferStr)
+//                    if(bufferStr.get(bufferStr.lastIndex) == ';'){
+//                        lifecycleScope.launch(Dispatchers.Main) {
+//                            Toast.makeText(this@MainActivity, currStr, Toast.LENGTH_SHORT)
+//                                .show()
+//                            Log.d(TAG,currStr)
+//                        }
+//                        currStr=""
+//                    }
+//                    else{
+//                        currStr += bufferStr
+//                    }
+//                        val readMessage= String(buffer!!, 0, buffer!!.size)
+//                        Log.d(TAG,"readMessage string is $readMessage")
+//                        lifecycleScope.launch(Dispatchers.Main){
+//                            Toast.makeText(this@MainActivity,
+//                                numBytes?.let { it1 -> buffer?.decodeToString()?.get(it1) }.toString(),Toast.LENGTH_SHORT).show()
+//                        }
+                    buffer = ByteArray(1024)                                                //we have to clear byteArray
+                }
             }
+        }
+
+        binding.btnSendData.setOnClickListener {
+            inStream =apnaSocket?.inputStream
+            outStream=apnaSocket?.outputStream
+
+            try{
+//                        outStream?.write(messageByteArray)
+                outStream?.write(0)
+                if(outStream==null){
+                    Log.d(TAG,"outStream is null")
+                }
+            }
+            catch (e: IOException) {
+                Log.e(TAG, "Error occurred when sending data", e)
+            }
+        }
     }
 
     @SuppressLint("MissingPermission")
