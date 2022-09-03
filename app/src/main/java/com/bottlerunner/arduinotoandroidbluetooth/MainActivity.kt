@@ -17,17 +17,6 @@ import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
 
-fun getFirst(str: String, n: Int): String {
-    var i:Int = 0
-    var ans:String=""
-    while(i <n){
-        ans += str[i]
-        i++
-    }
-    return ans
-}
-
-
 @SuppressLint("MissingPermission")
 class MainActivity : AppCompatActivity() {
 
