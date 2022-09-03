@@ -8,8 +8,8 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bottlerunner.arduinotoandroidbluetooth.databinding.ActivityMainBinding
@@ -17,10 +17,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.ByteArrayOutputStream
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 import java.util.*
 
 fun getFirst(str: String, n: Int): String {
@@ -185,8 +182,7 @@ class MainActivity : AppCompatActivity() {
                 outStream=apnaSocket?.outputStream
 
                 try{
-//                        outStream?.write(messageByteArray)
-                    outStream?.write(1)
+                    outStream?.write(1234)
                     if(outStream==null){
                         Log.d(TAG,"outStream is null")
                     }
@@ -194,50 +190,22 @@ class MainActivity : AppCompatActivity() {
                 catch (e: IOException) {
                     Log.e(TAG, "Error occurred when sending data", e)
                 }
+                val reader = BufferedReader(InputStreamReader(inStream))
 
                 while (true) {
-                    // Read from the InputStream.
+                    var currStr=""
                     var numBytes = try {
-                        inStream?.read(buffer)
+                        currStr = reader.readLine()
+//                        withContext(Dispatchers.Main) {
+//                            Toast.makeText(this@MainActivity,currStr,Toast.LENGTH_SHORT).show()
+//                        }
+                        Log.d(TAG,currStr)
+                        buffer = ByteArray(1024)                            //we have to clear byteArray
                     }
                     catch (e: IOException) {
                         Log.d(TAG, "Input stream was disconnected", e)
-                        binding.clientButton.callOnClick()
                         break
                     }
-                    val byteArrayOutputStream = ByteArrayOutputStream()
-//                        Log.d(TAG,"numBytes: $numBytes")
-//                        Log.d(TAG,"buffer to string is ${buffer?.toString()}")
-                    Log.d(TAG,"buffer to string is ${numBytes?.let { it1 ->
-                        getFirst(buffer?.decodeToString().toString(),
-                            it1
-                        )
-                    }}")
-                    var bufferStr =""
-                    numBytes?.let { it1 ->
-                        bufferStr =getFirst(buffer?.decodeToString().toString(),
-                            it1
-                        )
-                    }
-//                    Log.d(TAG,bufferStr)
-//                    if(bufferStr.get(bufferStr.lastIndex) == ';'){
-//                        lifecycleScope.launch(Dispatchers.Main) {
-//                            Toast.makeText(this@MainActivity, currStr, Toast.LENGTH_SHORT)
-//                                .show()
-//                            Log.d(TAG,currStr)
-//                        }
-//                        currStr=""
-//                    }
-//                    else{
-//                        currStr += bufferStr
-//                    }
-//                        val readMessage= String(buffer!!, 0, buffer!!.size)
-//                        Log.d(TAG,"readMessage string is $readMessage")
-//                        lifecycleScope.launch(Dispatchers.Main){
-//                            Toast.makeText(this@MainActivity,
-//                                numBytes?.let { it1 -> buffer?.decodeToString()?.get(it1) }.toString(),Toast.LENGTH_SHORT).show()
-//                        }
-                    buffer = ByteArray(1024)                                                //we have to clear byteArray
                 }
             }
         }
@@ -247,7 +215,6 @@ class MainActivity : AppCompatActivity() {
             outStream=apnaSocket?.outputStream
 
             try{
-//                        outStream?.write(messageByteArray)
                 outStream?.write(0)
                 if(outStream==null){
                     Log.d(TAG,"outStream is null")
