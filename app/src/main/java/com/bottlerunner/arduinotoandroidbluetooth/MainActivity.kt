@@ -13,10 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bottlerunner.arduinotoandroidbluetooth.databinding.ActivityMainBinding
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
 
@@ -172,8 +169,16 @@ class MainActivity : AppCompatActivity() {
                 bluetoothAdapter?.cancelDiscovery()
                 btDevice?.let {
                     apnaSocket = it.createInsecureRfcommSocketToServiceRecord(UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"))
-                    apnaSocket?.connect()
-                    Log.d("Log", apnaSocket.toString())
+                    try {
+                        apnaSocket?.connect()
+                        Log.d("Log", apnaSocket.toString())
+                    }
+                    catch(e: IOException) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT).show()
+                        }
+//                        this.cancel("Hag diya + $e")
+                    }
                 }
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@MainActivity,"Connected to ${apnaSocket?.remoteDevice?.name} \n ${apnaSocket.toString()}",Toast.LENGTH_SHORT).show()
@@ -182,7 +187,7 @@ class MainActivity : AppCompatActivity() {
                 outStream=apnaSocket?.outputStream
 
                 try{
-                    outStream?.write(1234)
+                    outStream?.write(1)
                     if(outStream==null){
                         Log.d(TAG,"outStream is null")
                     }
@@ -193,12 +198,13 @@ class MainActivity : AppCompatActivity() {
                 val reader = BufferedReader(InputStreamReader(inStream))
 
                 while (true) {
+                    outStream?.write(1)
                     var currStr=""
                     var numBytes = try {
                         currStr = reader.readLine()
-//                        withContext(Dispatchers.Main) {
-//                            Toast.makeText(this@MainActivity,currStr,Toast.LENGTH_SHORT).show()
-//                        }
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity,currStr,Toast.LENGTH_SHORT).show()
+                        }
                         Log.d(TAG,currStr)
                         buffer = ByteArray(1024)                            //we have to clear byteArray
                     }
