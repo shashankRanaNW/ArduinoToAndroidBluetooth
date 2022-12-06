@@ -1,0 +1,70 @@
+[33mcommit b17f3818118d7d828f34695ae9cf21b6a0d99ffb[m[33m ([m[1;36mHEAD -> [m[1;32mfinal-branch[m[33m, [m[1;33mtag: v.1.0.0[m[33m)[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Wed Sep 14 14:37:20 2022 +0530
+
+    Moved arduino code to root directory
+
+[33mcommit cabd411e9be5b6fa0e8a6b5672360009583f5828[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Sun Sep 4 00:19:47 2022 +0530
+
+    added arduino code
+
+[33mcommit c63f2837abd3bcbd50260d97f827f5151e97fdc1[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Sat Sep 3 23:58:43 2022 +0530
+
+    Bit refined, but unable to clear i/o stream persists
+    
+    This sends and receives data finally.
+    But if a device is reconnected then the stream of data stored in output stream of arduino will accumulate in arduino and be send in a single thrust to android. This is old and useless data. while(BTserial.available == 0) helps to avaoid this for the *first time*, but not on reconnection.
+
+[33mcommit 0666e0dee7b0aa5ccfc21255da2a2e460a4994bc[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Sat Sep 3 19:26:45 2022 +0530
+
+    Now we can take data when only we want
+
+[33mcommit 2506a2b9d96bbe9ccf72af30bdda33f7ce83eb58[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Fri Sep 2 23:27:05 2022 +0530
+
+    Sends and receives data tareeke se
+
+[33mcommit 98f537b26d840b20b1b9e6665f98b62496f17c6b[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Fri Sep 2 23:07:40 2022 +0530
+
+    Revert "Can send and receive data"
+    
+    This reverts commit 3e83b5a4fe2f9f2193fd21aabc2685c4a0464eb2.
+
+[33mcommit 3e83b5a4fe2f9f2193fd21aabc2685c4a0464eb2[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Fri Sep 2 22:19:20 2022 +0530
+
+    Can send and receive data
+
+[33mcommit d592dc457ca7f849eb068bcc4fd016df9d14df81[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Thu Sep 1 10:36:54 2022 +0530
+
+    Receiving data by leta nhi deta hu.io but getting corrupted data
+
+[33mcommit bc5d60d3e2e067e8bbfe2406338091842061eed7[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Tue Aug 30 15:51:24 2022 +0530
+
+    Gets address of device
+
+[33mcommit f0201baf91e98a0f0dcf1e14ca7cd5cc436aa74a[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Tue Aug 30 15:07:56 2022 +0530
+
+    Sorted till permissions
+
+[33mcommit 95d831269d7f34c48b6e7c93f15eabb172887f19[m
+Author: shashankRanaNoidaWala <101785829+shashankRanaNoidaWala@users.noreply.github.com>
+Date:   Tue Aug 30 10:37:34 2022 +0530
+
+    Initial commit

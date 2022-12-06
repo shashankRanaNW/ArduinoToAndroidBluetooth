@@ -39,6 +39,9 @@ class MainActivity : AppCompatActivity() {
 
     var currStr=""
 
+    var heartRateStr = "";
+    var timeStr = "";
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -161,6 +164,7 @@ class MainActivity : AppCompatActivity() {
                     try {
                         apnaSocket?.connect()
                         Log.d("Log", apnaSocket.toString())
+
                     }
                     catch(e: IOException) {
                         withContext(Dispatchers.Main) {
@@ -193,6 +197,12 @@ class MainActivity : AppCompatActivity() {
                         currStr = reader.readLine()
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity,currStr,Toast.LENGTH_SHORT).show()
+                            val compositeData = currStr.toInt()
+                            val heartRate = compositeData % 10000
+                            val timeMillis = compositeData /10000
+                            heartRateStr = "$heartRateStr $heartRate"
+                            timeStr = "$timeStr $timeStr"
+
                         }
                         Log.d(TAG,currStr)
                         buffer = ByteArray(1024)                            //we have to clear byteArray
@@ -244,6 +254,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+
         if (requestCode == SELECT_DEVICE && resultCode == RESULT_OK) {
             val name = data?.getStringExtra("devName")
             val address = data!!.getStringExtra("devAddress")
@@ -254,6 +265,7 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(this,name +"\n"+address,Toast.LENGTH_SHORT).show()
         }
         super.onActivityResult(requestCode, resultCode, data)
+
     }
 
     override fun onDestroy() {
