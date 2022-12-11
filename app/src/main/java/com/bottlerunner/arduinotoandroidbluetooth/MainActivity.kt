@@ -45,6 +45,7 @@ class MainActivity : AppCompatActivity() {
     var heartRateStr = "";
     var timeStr = "";
     var currHeartRate = 0
+    var sdnn =0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -203,32 +204,30 @@ class MainActivity : AppCompatActivity() {
 
                 var beforeLoopTime = System.currentTimeMillis()
                 while (true) {
+                    try{
 
-                    outStream?.write(1)
-                    var currStr=""
-                    var numBytes = try {
                         currStr = reader.readLine()
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity,currStr,Toast.LENGTH_SHORT).show()
                             val compositeData = currStr.toInt()
                             val heartRate = compositeData % 10000
                             val timeMillis = compositeData /10000
                             heartRateStr = "$heartRateStr,$heartRate"
                             timeStr = "$timeStr,$timeMillis"
-                            var heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
-                            var timeStrSansLastComma = timeStr.substring(1,timeStr.length)
 
-                            Log.d("HeartString",heartRateStrSansLastComma)
-                            Log.d("TimeString",timeStrSansLastComma)
+//                            Log.d("HeartString",heartRateStr)
+//                            Log.d("TimeString",timeStr)
 
                         }
-                        Log.d(TAG,currStr)
                         buffer = ByteArray(1024)                            //we have to clear byteArray
                     }
                     catch (e: IOException) {
                         Log.d(TAG, "Input stream was disconnected", e)
+                        withContext(Dispatchers.Main){
+                            Toast.makeText(this@MainActivity,e.message, Toast.LENGTH_LONG).show()
+                        }
                         break
                     }
+
 
                     if( (System.currentTimeMillis() - beforeLoopTime) >6000 ){
 
@@ -240,15 +239,22 @@ class MainActivity : AppCompatActivity() {
                             Log.d("HeartString",heartRateStrSansLastComma)
                             Log.d("TimeString",timeStrSansLastComma)
 
-                            currHeartRate =
-                                module.callAttr("get_bpm", heartRateStrSansLastComma, timeStrSansLastComma).toInt()
+//                            currHeartRate =
+//                                .second.toInt()
+//                            sdnn = .second.toInt()
                             beforeLoopTime = System.currentTimeMillis()
 
-                            heartRateStr = ""
-                            timeStr = ""
-
                             withContext(Dispatchers.Main) {
-                                binding.tvHeartRate.text = currHeartRate.toString()
+                                val dataList = module.callAttr("get_bpm_metric", heartRateStrSansLastComma, timeStrSansLastComma).asList()
+                                binding.tvHeartRate.text = dataList.get(0).toString()
+                                binding.tvSDNN.text = dataList.get(1).toString()
+                                Log.d("Contents of List", dataList.toString() )
+                                if(dataList.get(0).toDouble() >100){
+                                    Log.d("Abnormal data", heartRateStr)
+                                    Log.d("Abnormal data", timeStr)
+                                }
+                                heartRateStr = ""
+                                timeStr = ""
                             }
 
                         }

@@ -14,6 +14,19 @@
         tools:context=".MainActivity">
 
         <TextView
+            android:id="@+id/tvSDNN"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TextView"
+            android:textSize="30dp"
+            app:layout_constraintBottom_toTopOf="@+id/progressBar"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.501"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/btnDiscover"
+            app:layout_constraintVertical_bias="0.838" />
+
+        <TextView
             android:id="@+id/textView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -54,8 +67,10 @@
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toTopOf="@+id/textView"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.675" />
 
         <Button
             android:id="@+id/btnSendData"
@@ -101,8 +116,10 @@
             android:textSize="30dp"
             app:layout_constraintBottom_toTopOf="@+id/progressBar"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.501"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/btnDiscover" />
+            app:layout_constraintTop_toBottomOf="@+id/btnDiscover"
+            app:layout_constraintVertical_bias="0.224" />
 
         <ImageView
             android:id="@+id/imageView"
