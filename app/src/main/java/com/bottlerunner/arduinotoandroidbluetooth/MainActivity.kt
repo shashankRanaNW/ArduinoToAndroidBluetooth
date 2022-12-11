@@ -13,6 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bottlerunner.arduinotoandroidbluetooth.databinding.ActivityMainBinding
+import com.chaquo.python.PyException
+import com.chaquo.python.Python
+import com.chaquo.python.android.AndroidPlatform
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
@@ -41,11 +44,19 @@ class MainActivity : AppCompatActivity() {
 
     var heartRateStr = "";
     var timeStr = "";
+    var currHeartRate = 0
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
+
+        //setting up python
+        if (! Python.isStarted()) {
+            Python.start(AndroidPlatform(this))
+        }
+        val py = Python.getInstance()
+        val module = py.getModule("heartdata_to_heartrate")
 
         //        permissions ki bheek
 
@@ -190,7 +201,9 @@ class MainActivity : AppCompatActivity() {
                 }
                 val reader = BufferedReader(InputStreamReader(inStream))
 
+                var beforeLoopTime = System.currentTimeMillis()
                 while (true) {
+
                     outStream?.write(1)
                     var currStr=""
                     var numBytes = try {
@@ -200,8 +213,13 @@ class MainActivity : AppCompatActivity() {
                             val compositeData = currStr.toInt()
                             val heartRate = compositeData % 10000
                             val timeMillis = compositeData /10000
-                            heartRateStr = "$heartRateStr $heartRate"
-                            timeStr = "$timeStr $timeStr"
+                            heartRateStr = "$heartRateStr,$heartRate"
+                            timeStr = "$timeStr,$timeMillis"
+                            var heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
+                            var timeStrSansLastComma = timeStr.substring(1,timeStr.length)
+
+                            Log.d("HeartString",heartRateStrSansLastComma)
+                            Log.d("TimeString",timeStrSansLastComma)
 
                         }
                         Log.d(TAG,currStr)
@@ -210,6 +228,38 @@ class MainActivity : AppCompatActivity() {
                     catch (e: IOException) {
                         Log.d(TAG, "Input stream was disconnected", e)
                         break
+                    }
+
+                    if( (System.currentTimeMillis() - beforeLoopTime) >6000 ){
+
+                        try {
+
+                            var heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
+                            var timeStrSansLastComma = timeStr.substring(1,timeStr.length)
+
+                            Log.d("HeartString",heartRateStrSansLastComma)
+                            Log.d("TimeString",timeStrSansLastComma)
+
+                            currHeartRate =
+                                module.callAttr("get_bpm", heartRateStrSansLastComma, timeStrSansLastComma).toInt()
+                            beforeLoopTime = System.currentTimeMillis()
+
+                            heartRateStr = ""
+                            timeStr = ""
+
+                            withContext(Dispatchers.Main) {
+                                binding.tvHeartRate.text = currHeartRate.toString()
+                            }
+
+                        }
+                        catch(e: PyException){
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_LONG).show()
+                                Log.e("Error in python script",e.message + "\n" + e.cause + "\n" + e.toString())
+                                Log.e("Length",timeStr.length.toString())
+                            }
+                        }
+
                     }
                 }
             }
