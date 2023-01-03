@@ -14,6 +14,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.lifecycleScope
 import com.bottlerunner.arduinotoandroidbluetooth.databinding.ActivityMainBinding
 import com.chaquo.python.PyException
+import com.chaquo.python.PyObject
 import com.chaquo.python.Python
 import com.chaquo.python.android.AndroidPlatform
 import kotlinx.coroutines.*
@@ -35,10 +36,10 @@ class MainActivity : AppCompatActivity() {
     var inStream: InputStream? =null
     var outStream: OutputStream? = null
     var buffer: ByteArray? = ByteArray(1024)
-    var messageByteArray = "kem palty".toByteArray()
+    var messageByteArray = "Wassup".toByteArray()
 
     val SELECT_DEVICE = 0
-    val TAG ="Me hoo Gian, me hu bada takatvar"
+    val TAG ="Tag1"
 
     var currStr=""
 
@@ -47,20 +48,27 @@ class MainActivity : AppCompatActivity() {
     var currHeartRate = 0
     var sdnn =0
 
+    lateinit var py :Python
+    lateinit var module : PyObject
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= DataBindingUtil.setContentView(this,R.layout.activity_main)
 
+        Log.d(TAG,"bef setup")
         //setting up python
-        if (! Python.isStarted()) {
-            Python.start(AndroidPlatform(this))
+        lifecycleScope.launch(Dispatchers.Default) {
+            if (!Python.isStarted()) {
+                Python.start(AndroidPlatform(this@MainActivity))
+            }
+            py = Python.getInstance()
+            module = py.getModule("heartdata_to_heartrate")
+            Log.d(TAG,"pyhton set up")
         }
-        val py = Python.getInstance()
-        val module = py.getModule("heartdata_to_heartrate")
 
-        //        permissions ki bheek
-
+        //       asking for permissions
+        Log.d(TAG,"bef permission")
         requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.BLUETOOTH,
@@ -72,7 +80,7 @@ class MainActivity : AppCompatActivity() {
                 Manifest.permission.BLUETOOTH_SCAN,
             )
         )
-
+        Log.d(TAG,"bef bm")
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothAdapter = bluetoothManager.adapter
         if (bluetoothAdapter == null) {
@@ -82,6 +90,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.LENGTH_SHORT
             ).show()
         }
+        Log.d(TAG,"post bm")
 
         binding.btnDiscover.setOnClickListener {
             val intent = Intent(this, AvailableDevicesActivity::class.java)
@@ -182,7 +191,6 @@ class MainActivity : AppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, e.message, Toast.LENGTH_SHORT).show()
                         }
-//                        this.cancel("Hag diya + $e")
                     }
                 }
                 withContext(Dispatchers.Main) {
@@ -214,9 +222,6 @@ class MainActivity : AppCompatActivity() {
                             heartRateStr = "$heartRateStr,$heartRate"
                             timeStr = "$timeStr,$timeMillis"
 
-//                            Log.d("HeartString",heartRateStr)
-//                            Log.d("TimeString",timeStr)
-
                         }
                         buffer = ByteArray(1024)                            //we have to clear byteArray
                     }
@@ -239,9 +244,6 @@ class MainActivity : AppCompatActivity() {
                             Log.d("HeartString",heartRateStrSansLastComma)
                             Log.d("TimeString",timeStrSansLastComma)
 
-//                            currHeartRate =
-//                                .second.toInt()
-//                            sdnn = .second.toInt()
                             beforeLoopTime = System.currentTimeMillis()
 
                             withContext(Dispatchers.Main) {
