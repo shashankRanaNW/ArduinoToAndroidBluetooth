@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         //       asking for permissions
-        Log.d(TAG,"bef permission")
         requestPermissionLauncher.launch(
             arrayOf(
                 Manifest.permission.BLUETOOTH,
@@ -184,6 +183,9 @@ class MainActivity : AppCompatActivity() {
                     try {
                         apnaSocket?.connect()
                         Log.d("Log", apnaSocket.toString())
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity,"Connected to ${apnaSocket?.remoteDevice?.name} \n ${apnaSocket.toString()}",Toast.LENGTH_SHORT).show()
+                        }
                     }
                     catch(e: IOException) {
                         withContext(Dispatchers.Main) {
@@ -191,9 +193,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(this@MainActivity,"Connected to ${apnaSocket?.remoteDevice?.name} \n ${apnaSocket.toString()}",Toast.LENGTH_SHORT).show()
-                }
+
                 inStream =apnaSocket?.inputStream
                 outStream=apnaSocket?.outputStream
 
@@ -219,7 +219,9 @@ class MainActivity : AppCompatActivity() {
                             timeStampList.add(compositeData / 10000)
                         }
                     }
+                    catch(e: java.lang.NumberFormatException){
 
+                    }
                     catch (e: IOException) {
                         Log.d(TAG, "Input stream was disconnected", e)
                         withContext(Dispatchers.Main){
@@ -229,23 +231,23 @@ class MainActivity : AppCompatActivity() {
                     }
 
                     if( (System.currentTimeMillis() - beforeLoopTime) > 20000 ){
+                        Log.d("HeartList",ECGDataList.toString())
+                        Log.d("TimeList",timeStampList.toString())
 
                         try {
 
-                            Log.d("HeartString",ECGDataList.toString())
-                            Log.d("TimeString",timeStampList.toString())
-
                             withContext(Dispatchers.Main) {
-                                val dataList = module.callAttr("get_bpm_metric", ECGDataList.toIntArray(), timeStampList.toLongArray() ).asList()
+                                val dataList = module.callAttr(
+                                    "get_bpm_metric",
+                                    ECGDataList.toIntArray(),
+                                    timeStampList.toLongArray()
+                                ).asList()
                                 binding.tvHeartRate.text = dataList.get(0).toString()
                                 binding.tvSDNN.text = dataList.get(1).toString()
-                                Log.d(TAG, dataList.get(2).toString() )
                                 Log.d("Contents of List", dataList.toString())
                                 ECGDataList.clear()
                                 timeStampList.clear()
                             }
-                            beforeLoopTime = System.currentTimeMillis()
-
                         }
                         catch(e: PyException){
                             withContext(Dispatchers.Main) {
@@ -253,6 +255,9 @@ class MainActivity : AppCompatActivity() {
                                 Log.e("Error in python script",e.message + "\n" + e.cause + "\n" + e.toString())
                                 Log.e("Length",timeStr.length.toString())
                             }
+                        }
+                        finally {
+                            beforeLoopTime = System.currentTimeMillis()
                         }
 
                     }
