@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
             }
             py = Python.getInstance()
             module = py.getModule("heartdata_to_heartrate")
-            Log.d(TAG,"pyhton set up")
+            Log.d(TAG,"python set up")
         }
 
         //       asking for permissions
@@ -167,6 +167,7 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG,"buffer to string is ${buffer?.decodeToString()}")
                     val readMessage= String(buffer!!, 0, buffer!!.size)
                     Log.d(TAG,"readMessage string is $readMessage")
+                    buffer = ByteArray(1024)
 
                 }
             }
@@ -185,7 +186,6 @@ class MainActivity : AppCompatActivity() {
                     try {
                         apnaSocket?.connect()
                         Log.d("Log", apnaSocket.toString())
-
                     }
                     catch(e: IOException) {
                         withContext(Dispatchers.Main) {
@@ -200,7 +200,7 @@ class MainActivity : AppCompatActivity() {
                 outStream=apnaSocket?.outputStream
 
                 try{
-                    outStream?.write(1)
+                    outStream?.write(0)
                     if(outStream==null){
                         Log.d(TAG,"outStream is null")
                     }
@@ -208,23 +208,33 @@ class MainActivity : AppCompatActivity() {
                 catch (e: IOException) {
                     Log.e(TAG, "Error occurred when sending data", e)
                 }
+
                 val reader = BufferedReader(InputStreamReader(inStream))
 
                 var beforeLoopTime = System.currentTimeMillis()
                 while (true) {
                     try{
-
                         currStr = reader.readLine()
                         withContext(Dispatchers.Main) {
-                            val compositeData = currStr.toInt()
-                            val heartRate = compositeData % 10000
-                            val timeMillis = compositeData /10000
-                            heartRateStr = "$heartRateStr,$heartRate"
-                            timeStr = "$timeStr,$timeMillis"
-
+                            //in case of corrupted value, we are simply throwing it out of window
+                            try {
+                                val compositeData = currStr.toInt()
+                                val heartRate = compositeData % 10000
+                                val timeMillis = compositeData / 10000
+                                heartRateStr = "$heartRateStr,$heartRate"
+                                timeStr = "$timeStr,$timeMillis"
+                            }
+                            catch (e: java.lang.Exception){
+//                                continue
+                                if(currStr == "!"){
+                                    withContext(Dispatchers.Main) {
+                                        Toast.makeText(this@MainActivity,"ECG Pins not connected firmly",Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
                         }
-                        buffer = ByteArray(1024)                            //we have to clear byteArray
                     }
+
                     catch (e: IOException) {
                         Log.d(TAG, "Input stream was disconnected", e)
                         withContext(Dispatchers.Main){
@@ -238,8 +248,8 @@ class MainActivity : AppCompatActivity() {
 
                         try {
 
-                            var heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
-                            var timeStrSansLastComma = timeStr.substring(1,timeStr.length)
+                            val heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
+                            val timeStrSansLastComma = timeStr.substring(1,timeStr.length)
 
                             Log.d("HeartString",heartRateStrSansLastComma)
                             Log.d("TimeString",timeStrSansLastComma)
@@ -273,15 +283,12 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        binding.btnSendData.setOnClickListener {
+        binding.btnPauseResume.setOnClickListener {
             inStream =apnaSocket?.inputStream
             outStream=apnaSocket?.outputStream
 
             try{
-                outStream?.write(0)
-                if(outStream==null){
-                    Log.d(TAG,"outStream is null")
-                }
+                outStream?.write(1)
             }
             catch (e: IOException) {
                 Log.e(TAG, "Error occurred when sending data", e)
