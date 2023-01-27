@@ -36,17 +36,15 @@ class MainActivity : AppCompatActivity() {
     var inStream: InputStream? =null
     var outStream: OutputStream? = null
     var buffer: ByteArray? = ByteArray(1024)
-    var messageByteArray = "Wassup".toByteArray()
 
     val SELECT_DEVICE = 0
     val TAG ="Tag1"
-
     var currStr=""
+    var heartRateStr = ""
+    var timeStr = ""
 
-    var heartRateStr = "";
-    var timeStr = "";
-    var currHeartRate = 0
-    var sdnn =0
+    var ECGDataList = mutableListOf<Int>()
+    var timeStampList = mutableListOf<Long>()
 
     lateinit var py :Python
     lateinit var module : PyObject
@@ -216,22 +214,9 @@ class MainActivity : AppCompatActivity() {
                     try{
                         currStr = reader.readLine()
                         withContext(Dispatchers.Main) {
-                            //in case of corrupted value, we are simply throwing it out of window
-                            try {
-                                val compositeData = currStr.toInt()
-                                val heartRate = compositeData % 10000
-                                val timeMillis = compositeData / 10000
-                                heartRateStr = "$heartRateStr,$heartRate"
-                                timeStr = "$timeStr,$timeMillis"
-                            }
-                            catch (e: java.lang.Exception){
-//                                continue
-                                if(currStr == "!"){
-                                    withContext(Dispatchers.Main) {
-                                        Toast.makeText(this@MainActivity,"ECG Pins not connected firmly",Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
+                            val compositeData = currStr.toLong()
+                            ECGDataList.add((compositeData % 10000).toInt())
+                            timeStampList.add(compositeData / 10000)
                         }
                     }
 
@@ -243,31 +228,23 @@ class MainActivity : AppCompatActivity() {
                         break
                     }
 
-
-                    if( (System.currentTimeMillis() - beforeLoopTime) >6000 ){
+                    if( (System.currentTimeMillis() - beforeLoopTime) > 20000 ){
 
                         try {
 
-                            val heartRateStrSansLastComma = heartRateStr.substring(1,heartRateStr.length)
-                            val timeStrSansLastComma = timeStr.substring(1,timeStr.length)
-
-                            Log.d("HeartString",heartRateStrSansLastComma)
-                            Log.d("TimeString",timeStrSansLastComma)
-
-                            beforeLoopTime = System.currentTimeMillis()
+                            Log.d("HeartString",ECGDataList.toString())
+                            Log.d("TimeString",timeStampList.toString())
 
                             withContext(Dispatchers.Main) {
-                                val dataList = module.callAttr("get_bpm_metric", heartRateStrSansLastComma, timeStrSansLastComma).asList()
+                                val dataList = module.callAttr("get_bpm_metric", ECGDataList.toIntArray(), timeStampList.toLongArray() ).asList()
                                 binding.tvHeartRate.text = dataList.get(0).toString()
                                 binding.tvSDNN.text = dataList.get(1).toString()
-                                Log.d("Contents of List", dataList.toString() )
-                                if(dataList.get(0).toDouble() >100){
-                                    Log.d("Abnormal data", heartRateStr)
-                                    Log.d("Abnormal data", timeStr)
-                                }
-                                heartRateStr = ""
-                                timeStr = ""
+                                Log.d(TAG, dataList.get(2).toString() )
+                                Log.d("Contents of List", dataList.toString())
+                                ECGDataList.clear()
+                                timeStampList.clear()
                             }
+                            beforeLoopTime = System.currentTimeMillis()
 
                         }
                         catch(e: PyException){
